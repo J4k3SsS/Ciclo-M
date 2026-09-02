@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciclo Lesly 🌸</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #FBF6F4;
+    --panel: #FFFFFF;
+    --ink: #3A2E35;
+    --ink-soft: #7A6B72;
+    --mauve: #7D5A6B;
+    --rose: #C97B84;
+    --sage: #93A683;
+    --line: #EDE1DD;
+    --today-ring: #C97B84;
+    --period-fill: #D98F97;
+    --predict-fill: #F0D3D6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 32px 16px 80px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 28px;
+  }
+
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 34px;
+    letter-spacing: -0.01em;
+    color: var(--mauve);
+  }
+
+  header p {
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    margin-top: 4px;
+  }
+
+  .status-card {
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    border: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .status-card .big {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    color: var(--mauve);
+    font-weight: 500;
+  }
+
+  .status-card .label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .tab-btn.active {
+    background: var(--mauve);
+    color: white;
+  }
+
+  .panel {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px;
+  }
+
+  .panel.active { display: block; }
+
+  /* Calendar */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .cal-header h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 19px;
+  }
+
+  .cal-nav {
+    display: flex;
+    gap: 6px;
+  }
+
+  .cal-nav button {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--mauve);
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+  }
+
+  .cal-grid .dow {
+    font-size: 11px;
+    color: var(--ink-soft);
+    padding-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 13.5px;
+    cursor: pointer;
+    position: relative;
+    color: var(--ink);
+  }
+
+  .day-cell.empty { cursor: default; }
+  .day-cell.period { background: var(--period-fill); color: white; font-weight: 600; }
+  .day-cell.predicted { background: var(--predict-fill); color: var(--mauve); }
+  .day-cell.today { box-shadow: inset 0 0 0 2px var(--today-ring); font-weight: 600; }
+  .day-cell.has-note::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--sage);
+  }
+  .day-cell:not(.empty):hover { background: var(--line); }
+  .day-cell.period:hover { background: #C97580; }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  .helper-text {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+
+  /* Day detail */
+  .day-detail {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    display: none;
+  }
+  .day-detail.active { display: block; }
+  .day-detail h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .toggle-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .toggle-row button {
+    flex: 1;
+    padding: 9px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .toggle-row button.on {
+    background: var(--rose);
+    color: white;
+    border-color: var(--rose);
+  }
+
+  /* Symptoms / mood */
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .chip.on {
+    background: var(--sage);
+    border-color: var(--sage);
+    color: white;
+  }
+
+  textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    resize: vertical;
+    min-height: 70px;
+    background: var(--bg);
+  }
+  textarea:focus, .day-detail input:focus { outline: 2px solid var(--rose); outline-offset: 1px; }
+
+  label.field-label {
+    display: block;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  /* Stats */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .stat-box .num {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    color: var(--mauve);
+  }
+  .stat-box .lbl {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .history-row .range { font-weight: 500; }
+  .history-row .dur { color: var(--ink-soft); }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px 10px;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+  }
+
+  .save-hint {
+    font-size: 12px;
+    color: var(--sage);
+    margin-top: 10px;
+    min-height: 16px;
+  }
+
+  @media (max-width: 400px) {
+    .status-card .big { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Ciclo Lesly 🌸</h1>
+    <p>Tu seguimiento personal, guardado en este dispositivo</p>
+  </header>
+
+  <div class="status-card" id="statusCard">
+    <div>
+      <div class="big" id="statusBig">Cargando…</div>
+      <div class="label" id="statusLabel"></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="cal">Calendario</button>
+    <button class="tab-btn" data-tab="stats">Estadísticas</button>
+  </div>
+
+  <div class="panel active" id="panel-cal">
+    <div class="cal-header">
+      <div class="cal-nav"><button id="prevMonth">‹</button></div>
+      <h2 id="monthLabel"></h2>
+      <div class="cal-nav"><button id="nextMonth">›</button></div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--period-fill)"></i> Período</span>
+      <span><i class="dot" style="background:var(--predict-fill)"></i> Predicción</span>
+      <span><i class="dot" style="background:var(--sage)"></i> Con notas</span>
+    </div>
+    <p class="helper-text">Toca un día para marcarlo como período o registrar síntomas y notas.</p>
+
+    <div class="day-detail" id="dayDetail">
+      <h3 id="dayDetailTitle"></h3>
+      <div class="toggle-row">
+        <button id="periodToggle">Marcar como día de período</button>
+      </div>
+
+      <label class="field-label">Síntomas</label>
+      <div class="chip-group" id="symptomChips"></div>
+
+      <label class="field-label">Estado de ánimo</label>
+      <div class="chip-group" id="moodChips"></div>
+
+      <label class="field-label">Notas</label>
+      <textarea id="noteInput" placeholder="Escribe algo sobre este día..."></textarea>
+
+      <div class="save-hint" id="saveHint"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-stats">
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="num" id="statAvgCycle">–</div>
+        <div class="lbl">Duración promedio del ciclo</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statAvgPeriod">–</div>
+        <div class="lbl">Duración promedio del período</div>
+      </div>
+    </div>
+    <label class="field-label">Historial de períodos</label>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const SYMPTOMS = ['Cólicos', 'Dolor de cabeza', 'Hinchazón', 'Fatiga', 'Sensibilidad', 'Acné', 'Náuseas', 'Dolor de espalda'];
+  const MOODS = ['Feliz', 'Tranquila', 'Irritable', 'Triste', 'Ansiosa', 'Energética'];
+  const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const DOW = ['L','M','X','J','V','S','D'];
+
+  let data = { days: {} }; // days: { 'YYYY-MM-DD': { period: bool, symptoms: [], moods: [], note: '' } }
+  let viewYear, viewMonth;
+  let selectedDate = null;
+  let saveTimer = null;
+
+  const todayStr = () => fmt(new Date());
+  function fmt(d) {
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function parseDate(s) {
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+
+  async function loadData() {
+    try {
+      const raw = localStorage.getItem('cycle-data');
+      if (raw) {
+        data = JSON.parse(raw);
+      }
+    } catch (e) {
+      data = { days: {} };
+    }
+    const now = new Date();
+    viewYear = now.getFullYear();
+    viewMonth = now.getMonth();
+    render();
+  }
+
+  async function saveData() {
+    try {
+      localStorage.setItem('cycle-data', JSON.stringify(data));
+      const hint = document.getElementById('saveHint');
+      hint.textContent = 'Guardado';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => { hint.textContent = ''; }, 1400);
+    } catch (e) {
+      const hint = document.getElementById('saveHint');
+      hint.textContent = 'No se pudo guardar. Revisa el espacio de almacenamiento del navegador.';
+    }
+  }
+
+  function getPeriodStarts() {
+    // returns sorted list of period-start dates (Date objects), grouping consecutive period days into ranges
+    const periodDates = Object.keys(data.days)
+      .filter(k => data.days[k].period)
+      .sort();
+    const ranges = [];
+    let current = null;
+    for (const ds of periodDates) {
+      const d = parseDate(ds);
+      if (current && isNextDay(current.end, d)) {
+        current.end = d;
+      } else {
+        if (current) ranges.push(current);
+        current = { start: d, end: d };
+      }
+    }
+    if (current) ranges.push(current);
+    return ranges;
+  }
+
+  function isNextDay(a, b) {
+    const next = new Date(a);
+    next.setDate(next.getDate() + 1);
+    return fmt(next) === fmt(b);
+  }
+
+  function computeAverages(ranges) {
+    if (ranges.length === 0) return { avgCycle: null, avgPeriod: null };
+    const periodLengths = ranges.map(r => Math.round((r.end - r.start) / 86400000) + 1);
+    const avgPeriod = Math.round(periodLengths.reduce((a,b)=>a+b,0) / periodLengths.length);
+    let avgCycle = null;
+    if (ranges.length >= 2) {
+      const gaps = [];
+      for (let i = 1; i < ranges.length; i++) {
+        const gap = Math.round((ranges[i].start - ranges[i-1].start) / 86400000);
+        gaps.push(gap);
+      }
+      avgCycle = Math.round(gaps.reduce((a,b)=>a+b,0) / gaps.length);
+    }
+    return { avgPeriod, avgCycle };
+  }
+
+  function predictNext(ranges, avgCycle) {
+    if (ranges.length === 0 || !avgCycle) return null;
+    const last = ranges[ranges.length - 1];
+    const next = new Date(last.start);
+    next.setDate(next.getDate() + avgCycle);
+    return next;
+  }
+
+  function render() {
+    renderStatus();
+    renderCalendar();
+    renderStats();
+  }
+
+  function renderStatus() {
+    const ranges = getPeriodStarts();
+    const { avgCycle, avgPeriod } = computeAverages(ranges);
+    const big = document.getElementById('statusBig');
+    const label = document.getElementById('statusLabel');
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    const currentRange = ranges.find(r => today >= r.start && today <= r.end);
+    if (currentRange) {
+      const dayNum = Math.round((today - currentRange.start)/86400000) + 1;
+      big.textContent = `Día ${dayNum} de período`;
+      label.textContent = 'Registrado hoy';
+      return;
+    }
+
+    const next = predictNext(ranges, avgCycle);
+    if (next) {
+      const diff = Math.round((next - today) / 86400000);
+      const dateStr = `${next.getDate()} de ${MONTH_NAMES[next.getMonth()]}`;
+      if (diff >= 0) {
+        big.textContent = diff === 0 ? 'Hoy' : `En ${diff} día${diff===1?'':'s'}`;
+        label.textContent = diff === 0 ? 'Próximo período estimado para hoy' : `Próximo período estimado: ${dateStr}`;
+      } else {
+        big.textContent = 'Sin datos recientes';
+        label.textContent = 'Registra tu último período para actualizar la predicción';
+      }
+    } else {
+      big.textContent = 'Aún sin datos';
+      label.textContent = 'Marca tus días de período en el calendario para empezar';
+    }
+  }
+
+  function renderCalendar() {
+    document.getElementById('monthLabel').textContent = `${MONTH_NAMES[viewMonth]} ${viewYear}`;
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+    DOW.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    const firstDay = new Date(viewYear, viewMonth, 1);
+    let startOffset = firstDay.getDay() - 1; // Monday = 0
+    if (startOffset < 0) startOffset = 6;
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    const ranges = getPeriodStarts();
+    const { avgCycle } = computeAverages(ranges);
+    const nextPredicted = predictNext(ranges, avgCycle);
+    let predictedRangeDates = new Set();
+    if (nextPredicted && ranges.length > 0) {
+      const lastLen = Math.round((ranges[ranges.length-1].end - ranges[ranges.length-1].start)/86400000) + 1;
+      for (let i = 0; i < lastLen; i++) {
+        const d = new Date(nextPredicted);
+        d.setDate(d.getDate() + i);
+        predictedRangeDates.add(fmt(d));
+      }
+    }
+
+    for (let i = 0; i < startOffset; i++) {
+      const el = document.createElement('div');
+      el.className = 'day-cell empty';
+      grid.appendChild(el);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(viewYear, viewMonth, day);
+      const ds = fmt(d);
+      const el = document.createElement('div');
+      el.className = 'day-cell';
+      el.textContent = day;
+
+      const entry = data.days[ds];
+      if (entry && entry.period) el.classList.add('period');
+      else if (predictedRangeDates.has(ds)) el.classList.add('predicted');
+
+      if (entry && (entry.symptoms?.length || entry.moods?.length || entry.note)) {
+        el.classList.add('has-note');
+      }
+      if (ds === todayStr()) el.classList.add('today');
+
+      el.addEventListener('click', () => selectDay(ds));
+      grid.appendChild(el);
+    }
+  }
+
+  function selectDay(ds) {
+    selectedDate = ds;
+    const d = parseDate(ds);
+    const detail = document.getElementById('dayDetail');
+    detail.classList.add('active');
+    document.getElementById('dayDetailTitle').textContent =
+      `${d.getDate()} de ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+
+    const entry = data.days[ds] || { period: false, symptoms: [], moods: [], note: '' };
+
+    const periodBtn = document.getElementById('periodToggle');
+    periodBtn.classList.toggle('on', !!entry.period);
+    periodBtn.textContent = entry.period ? 'Día de período ✓' : 'Marcar como día de período';
+
+    renderChips('symptomChips', SYMPTOMS, entry.symptoms || []);
+    renderChips('moodChips', MOODS, entry.moods || []);
+
+    document.getElementById('noteInput').value = entry.note || '';
+
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function renderChips(containerId, options, selected) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    options.forEach(opt => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (selected.includes(opt) ? ' on' : '');
+      chip.textContent = opt;
+      chip.addEventListener('click', () => toggleChip(containerId, opt));
+      container.appendChild(chip);
+    });
+  }
+
+  function ensureEntry(ds) {
+    if (!data.days[ds]) {
+      data.days[ds] = { period: false, symptoms: [], moods: [], note: '' };
+    }
+    return data.days[ds];
+  }
+
+  function toggleChip(containerId, value) {
+    const entry = ensureEntry(selectedDate);
+    const key = containerId === 'symptomChips' ? 'symptoms' : 'moods';
+    if (!entry[key]) entry[key] = [];
+    const idx = entry[key].indexOf(value);
+    if (idx >= 0) entry[key].splice(idx, 1);
+    else entry[key].push(value);
+    selectDay(selectedDate);
+    render();
+    saveData();
+  }
+
+  document.getElementById('periodToggle').addEventListener('click', () => {
+    const entry = ensureEntry(selectedDate);
+    entry.period = !entry.period;
+    selectDay(selectedDate);
+    render();
+    saveData();
+  });
+
+  let noteDebounce = null;
+  document.getElementById('noteInput').addEventListener('input', (e) => {
+    const entry = ensureEntry(selectedDate);
+    entry.note = e.target.value;
+    clearTimeout(noteDebounce);
+    noteDebounce = setTimeout(() => {
+      render();
+      saveData();
+    }, 500);
+  });
+
+  document.getElementById('prevMonth').addEventListener('click', () => {
+    viewMonth--;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    renderCalendar();
+  });
+  document.getElementById('nextMonth').addEventListener('click', () => {
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    renderCalendar();
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  function renderStats() {
+    const ranges = getPeriodStarts();
+    const { avgCycle, avgPeriod } = computeAverages(ranges);
+    document.getElementById('statAvgCycle').textContent = avgCycle ? `${avgCycle}d` : '–';
+    document.getElementById('statAvgPeriod').textContent = avgPeriod ? `${avgPeriod}d` : '–';
+
+    const list = document.getElementById('historyList');
+    list.innerHTML = '';
+    if (ranges.length === 0) {
+      list.innerHTML = '<div class="empty-state">Aún no hay períodos registrados. Marca días en el calendario para ver tu historial aquí.</div>';
+      return;
+    }
+    ranges.slice().reverse().forEach(r => {
+      const dur = Math.round((r.end - r.start)/86400000) + 1;
+      const row = document.createElement('div');
+      row.className = 'history-row';
+      const startStr = `${r.start.getDate()} ${MONTH_NAMES[r.start.getMonth()].slice(0,3)}`;
+      const endStr = `${r.end.getDate()} ${MONTH_NAMES[r.end.getMonth()].slice(0,3)}`;
+      row.innerHTML = `<span class="range">${startStr} – ${endStr}</span><span class="dur">${dur} día${dur===1?'':'s'}</span>`;
+      list.appendChild(row);
+    });
+  }
+
+  loadData();
+})();
+</script>
+</body>
+</html>
