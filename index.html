@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#7D5A6B">
 <title>Ciclo Lesly 🌸</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
@@ -345,6 +349,22 @@
     min-height: 16px;
   }
 
+  .share-btn {
+    width: 100%;
+    margin-top: 22px;
+    padding: 13px;
+    border-radius: 12px;
+    border: none;
+    background: var(--mauve);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .share-btn:active { opacity: 0.85; }
+  #shareHelper { text-align: center; margin-top: 8px; }
+
   @media (max-width: 400px) {
     .status-card .big { font-size: 24px; }
   }
@@ -415,6 +435,9 @@
     </div>
     <label class="field-label">Historial de períodos</label>
     <div class="history-list" id="historyList"></div>
+
+    <button id="shareBtn" class="share-btn">Compartir resumen 📤</button>
+    <p class="helper-text" id="shareHelper">Envía un resumen simple por WhatsApp, correo o mensajes.</p>
   </div>
 </div>
 
@@ -725,6 +748,54 @@
       row.innerHTML = `<span class="range">${startStr} – ${endStr}</span><span class="dur">${dur} día${dur===1?'':'s'}</span>`;
       list.appendChild(row);
     });
+  }
+
+  document.getElementById('shareBtn').addEventListener('click', shareSummary);
+
+  async function shareSummary() {
+    const ranges = getPeriodStarts();
+    const { avgCycle, avgPeriod } = computeAverages(ranges);
+    const next = predictNext(ranges, avgCycle);
+
+    let text = 'Resumen de Ciclo Lesly 🌸\n\n';
+
+    if (ranges.length > 0) {
+      const last = ranges[ranges.length - 1];
+      const lastStr = `${last.start.getDate()} de ${MONTH_NAMES[last.start.getMonth()]}`;
+      text += `Último período: ${lastStr}\n`;
+    } else {
+      text += 'Aún no hay períodos registrados.\n';
+    }
+
+    if (avgCycle) text += `Duración promedio del ciclo: ${avgCycle} días\n`;
+    if (avgPeriod) text += `Duración promedio del período: ${avgPeriod} días\n`;
+
+    if (next) {
+      const diff = Math.round((next - new Date().setHours(0,0,0,0)) / 86400000);
+      const nextStr = `${next.getDate()} de ${MONTH_NAMES[next.getMonth()]}`;
+      text += `Próximo período estimado: ${nextStr}${diff >= 0 ? ` (en ${diff} día${diff===1?'':'s'})` : ''}\n`;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Ciclo Lesly', text });
+        return;
+      } catch (e) {
+        // usuario canceló o no soportado, seguimos al respaldo
+      }
+    }
+
+    // Respaldo: copiar al portapapeles
+    try {
+      await navigator.clipboard.writeText(text);
+      const helper = document.getElementById('shareHelper');
+      helper.textContent = 'Resumen copiado — pégalo donde quieras enviarlo.';
+      setTimeout(() => {
+        helper.textContent = 'Envía un resumen simple por WhatsApp, correo o mensajes.';
+      }, 2500);
+    } catch (e) {
+      alert(text);
+    }
   }
 
   loadData();
