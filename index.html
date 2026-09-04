@@ -84,6 +84,24 @@
     margin-top: 2px;
   }
 
+  .alert-banner {
+    display: none;
+    background: var(--predict-fill);
+    color: var(--mauve);
+    border: 1px solid var(--rose);
+    border-radius: 14px;
+    padding: 13px 16px;
+    font-size: 13.5px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    line-height: 1.45;
+  }
+  .alert-banner.irregular {
+    background: #F3E9DD;
+    border-color: #C9A876;
+    color: #7A5A2E;
+  }
+
   .tabs {
     display: flex;
     gap: 4px;
@@ -183,6 +201,7 @@
   .day-cell.empty { cursor: default; }
   .day-cell.period { background: var(--period-fill); color: white; font-weight: 600; }
   .day-cell.predicted { background: var(--predict-fill); color: var(--mauve); }
+  .day-cell.fertile { background: #E3EEDC; color: #5C7A4B; }
   .day-cell.today { box-shadow: inset 0 0 0 2px var(--today-ring); font-weight: 600; }
   .day-cell.has-note::after {
     content: '';
@@ -365,6 +384,96 @@
   .share-btn:active { opacity: 0.85; }
   #shareHelper { text-align: center; margin-top: 8px; }
 
+  /* Mascota */
+  .pet-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 6px;
+    position: relative;
+  }
+  .pet-bubble {
+    min-height: 22px;
+    font-size: 13px;
+    color: var(--mauve);
+    font-weight: 500;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  #petSvgHolder svg { width: 190px; height: 190px; transition: transform 0.15s; }
+  #petSvgHolder.bounce svg { animation: petBounce 0.4s ease; }
+  @keyframes petBounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.08) rotate(-2deg); }
+    60% { transform: scale(0.97) rotate(2deg); }
+    100% { transform: scale(1); }
+  }
+  .pet-name {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin-top: 4px;
+  }
+
+  .pet-stats {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pet-stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pet-stat-label {
+    width: 72px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+  }
+  .pet-bar {
+    flex: 1;
+    height: 10px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .pet-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .pet-bar-fill.happy { background: var(--rose); }
+  .pet-bar-fill.hunger { background: var(--sage); }
+
+  .pet-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .pet-action-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 8px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .pet-action-btn span {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .pet-action-btn:active { background: var(--line); }
+
   @media (max-width: 400px) {
     .status-card .big { font-size: 24px; }
   }
@@ -384,9 +493,12 @@
     </div>
   </div>
 
+  <div class="alert-banner" id="alertBanner"></div>
+
   <div class="tabs">
     <button class="tab-btn active" data-tab="cal">Calendario</button>
     <button class="tab-btn" data-tab="stats">Estadísticas</button>
+    <button class="tab-btn" data-tab="pet">Mascota 🐶</button>
   </div>
 
   <div class="panel active" id="panel-cal">
@@ -399,9 +511,10 @@
     <div class="legend">
       <span><i class="dot" style="background:var(--period-fill)"></i> Período</span>
       <span><i class="dot" style="background:var(--predict-fill)"></i> Predicción</span>
+      <span><i class="dot" style="background:#E3EEDC"></i> Días fértiles (estimado)</span>
       <span><i class="dot" style="background:var(--sage)"></i> Con notas</span>
     </div>
-    <p class="helper-text">Toca un día para marcarlo como período o registrar síntomas y notas.</p>
+    <p class="helper-text">Toca un día para marcarlo como período o registrar síntomas y notas. Los días fértiles son un estimado basado en el promedio de tu ciclo — no son un método anticonceptivo confiable.</p>
 
     <div class="day-detail" id="dayDetail">
       <h3 id="dayDetailTitle"></h3>
@@ -438,6 +551,33 @@
 
     <button id="shareBtn" class="share-btn">Compartir resumen 📤</button>
     <p class="helper-text" id="shareHelper">Envía un resumen simple por WhatsApp, correo o mensajes.</p>
+  </div>
+
+  <div class="panel" id="panel-pet">
+    <div class="pet-stage">
+      <div class="pet-bubble" id="petBubble"></div>
+      <div id="petSvgHolder"></div>
+      <div class="pet-name">Peluche</div>
+    </div>
+
+    <div class="pet-stats">
+      <div class="pet-stat-row">
+        <span class="pet-stat-label">Felicidad</span>
+        <div class="pet-bar"><div class="pet-bar-fill happy" id="happyBar"></div></div>
+      </div>
+      <div class="pet-stat-row">
+        <span class="pet-stat-label">Comida</span>
+        <div class="pet-bar"><div class="pet-bar-fill hunger" id="hungerBar"></div></div>
+      </div>
+    </div>
+
+    <div class="pet-actions">
+      <button class="pet-action-btn" id="feedBtn">🍖<span>Alimentar</span></button>
+      <button class="pet-action-btn" id="petBtn">🐾<span>Acariciar</span></button>
+      <button class="pet-action-btn" id="playBtn">🎾<span>Jugar</span></button>
+      <button class="pet-action-btn" id="sleepBtn">😴<span>Dormir</span></button>
+    </div>
+    <p class="helper-text" id="petHelper">Peluche se pone contento cuando lo cuidas todos los días.</p>
   </div>
 </div>
 
@@ -518,19 +658,32 @@
   }
 
   function computeAverages(ranges) {
-    if (ranges.length === 0) return { avgCycle: null, avgPeriod: null };
+    if (ranges.length === 0) return { avgCycle: null, avgPeriod: null, gaps: [] };
     const periodLengths = ranges.map(r => Math.round((r.end - r.start) / 86400000) + 1);
     const avgPeriod = Math.round(periodLengths.reduce((a,b)=>a+b,0) / periodLengths.length);
     let avgCycle = null;
+    let gaps = [];
     if (ranges.length >= 2) {
-      const gaps = [];
       for (let i = 1; i < ranges.length; i++) {
         const gap = Math.round((ranges[i].start - ranges[i-1].start) / 86400000);
         gaps.push(gap);
       }
       avgCycle = Math.round(gaps.reduce((a,b)=>a+b,0) / gaps.length);
     }
-    return { avgPeriod, avgCycle };
+    return { avgPeriod, avgCycle, gaps };
+  }
+
+  function checkIrregularity(gaps) {
+    // Usa hasta los últimos 4 gaps (5 períodos) para evaluar qué tan variable ha sido el ciclo
+    const recent = gaps.slice(-4);
+    if (recent.length < 2) return null;
+    const max = Math.max(...recent);
+    const min = Math.min(...recent);
+    const range = max - min;
+    if (range >= 8) {
+      return `Tus últimos ciclos han variado bastante (entre ${min} y ${max} días). Puede pasar por muchas razones, pero si te preocupa vale la pena comentarlo con un profesional de salud.`;
+    }
+    return null;
   }
 
   function predictNext(ranges, avgCycle) {
@@ -549,10 +702,14 @@
 
   function renderStatus() {
     const ranges = getPeriodStarts();
-    const { avgCycle, avgPeriod } = computeAverages(ranges);
+    const { avgCycle, avgPeriod, gaps } = computeAverages(ranges);
     const big = document.getElementById('statusBig');
     const label = document.getElementById('statusLabel');
+    const alertBanner = document.getElementById('alertBanner');
     const today = new Date(); today.setHours(0,0,0,0);
+    alertBanner.style.display = 'none';
+    alertBanner.textContent = '';
+    alertBanner.classList.remove('irregular');
 
     const currentRange = ranges.find(r => today >= r.start && today <= r.end);
     if (currentRange) {
@@ -569,6 +726,14 @@
       if (diff >= 0) {
         big.textContent = diff === 0 ? 'Hoy' : `En ${diff} día${diff===1?'':'s'}`;
         label.textContent = diff === 0 ? 'Próximo período estimado para hoy' : `Próximo período estimado: ${dateStr}`;
+
+        // Alerta cuando faltan 3 días o menos
+        if (diff <= 3) {
+          alertBanner.style.display = 'block';
+          alertBanner.textContent = diff === 0
+            ? '🌸 Tu período se estima para hoy'
+            : `🌸 Tu período se acerca — faltan ${diff} día${diff===1?'':'s'}`;
+        }
       } else {
         big.textContent = 'Sin datos recientes';
         label.textContent = 'Registra tu último período para actualizar la predicción';
@@ -576,6 +741,16 @@
     } else {
       big.textContent = 'Aún sin datos';
       label.textContent = 'Marca tus días de período en el calendario para empezar';
+    }
+
+    // Aviso de irregularidad (solo si no hay ya una alerta de "se acerca" mostrándose)
+    if (alertBanner.style.display === 'none') {
+      const irregularMsg = checkIrregularity(gaps);
+      if (irregularMsg) {
+        alertBanner.style.display = 'block';
+        alertBanner.classList.add('irregular');
+        alertBanner.textContent = '📋 ' + irregularMsg;
+      }
     }
   }
 
@@ -608,6 +783,19 @@
       }
     }
 
+    // Ventana fértil estimada: los 6 días que terminan en la ovulación estimada
+    // (ovulación ≈ 14 días antes del inicio del siguiente período — método calendario estándar)
+    let fertileDates = new Set();
+    if (nextPredicted && avgCycle) {
+      const ovulation = new Date(nextPredicted);
+      ovulation.setDate(ovulation.getDate() - 14);
+      for (let i = -5; i <= 0; i++) {
+        const d = new Date(ovulation);
+        d.setDate(d.getDate() + i);
+        fertileDates.add(fmt(d));
+      }
+    }
+
     for (let i = 0; i < startOffset; i++) {
       const el = document.createElement('div');
       el.className = 'day-cell empty';
@@ -624,6 +812,7 @@
       const entry = data.days[ds];
       if (entry && entry.period) el.classList.add('period');
       else if (predictedRangeDates.has(ds)) el.classList.add('predicted');
+      else if (fertileDates.has(ds)) el.classList.add('fertile');
 
       if (entry && (entry.symptoms?.length || entry.moods?.length || entry.note)) {
         el.classList.add('has-note');
@@ -751,6 +940,152 @@
   }
 
   document.getElementById('shareBtn').addEventListener('click', shareSummary);
+
+  // ---------- Mascota ----------
+  let pet = { happiness: 70, hunger: 70, lastUpdate: Date.now() };
+
+  function loadPet() {
+    try {
+      const raw = localStorage.getItem('pet-data');
+      if (raw) pet = JSON.parse(raw);
+    } catch (e) { /* usa valores por defecto */ }
+
+    // Decaimiento con el tiempo: -1 punto cada 2 horas transcurridas, tope de 24h de decaimiento
+    const hoursPassed = Math.min(24, (Date.now() - (pet.lastUpdate || Date.now())) / 3600000);
+    const decay = Math.floor(hoursPassed / 2);
+    pet.happiness = clamp(pet.happiness - decay);
+    pet.hunger = clamp(pet.hunger - decay);
+    pet.lastUpdate = Date.now();
+    savePet();
+    renderPet();
+  }
+
+  function savePet() {
+    try {
+      localStorage.setItem('pet-data', JSON.stringify(pet));
+    } catch (e) { /* almacenamiento no disponible */ }
+  }
+
+  function clamp(n) { return Math.max(0, Math.min(100, Math.round(n))); }
+
+  function petMood() {
+    const avg = (pet.happiness + pet.hunger) / 2;
+    if (avg >= 70) return 'feliz';
+    if (avg >= 35) return 'neutral';
+    return 'triste';
+  }
+
+  function dogSVG(mood) {
+    const eyes = {
+      feliz: '<path d="M108 118 Q116 108 124 118" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M156 118 Q164 108 172 118" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/>',
+      neutral: '<circle cx="115" cy="118" r="6" fill="#3A2E35"/><circle cx="165" cy="118" r="6" fill="#3A2E35"/>',
+      triste: '<circle cx="115" cy="122" r="6" fill="#3A2E35"/><circle cx="165" cy="122" r="6" fill="#3A2E35"/><path d="M100 108 Q112 102 122 108" stroke="#3A2E35" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M158 108 Q168 102 180 108" stroke="#3A2E35" stroke-width="3" fill="none" stroke-linecap="round"/>',
+      comiendo: '<path d="M105 116 Q116 122 127 116" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M153 116 Q164 122 175 116" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/>',
+      cariño: '<path d="M107 122 Q115 112 123 122 Q115 132 107 122 Z" fill="#C97B84"/><path d="M155 122 Q163 112 171 122 Q163 132 155 122 Z" fill="#C97B84"/>',
+      jugando: '<path d="M104 112 L126 122 M126 112 L104 122" stroke="#3A2E35" stroke-width="5" stroke-linecap="round"/><path d="M154 112 L176 122 M176 112 L154 122" stroke="#3A2E35" stroke-width="5" stroke-linecap="round"/>',
+      durmiendo: '<path d="M105 118 Q116 112 127 118" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M153 118 Q164 112 175 118" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/>'
+    };
+    const mouth = {
+      feliz: '<path d="M120 142 Q140 158 160 142" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="140" cy="150" rx="10" ry="7" fill="#D98F97"/>',
+      neutral: '<path d="M128 145 Q140 150 152 145" stroke="#3A2E35" stroke-width="4" fill="none" stroke-linecap="round"/>',
+      triste: '<path d="M124 150 Q140 140 156 150" stroke="#3A2E35" stroke-width="4" fill="none" stroke-linecap="round"/>',
+      comiendo: '<ellipse cx="140" cy="148" rx="16" ry="14" fill="#5A3D28"/><ellipse cx="140" cy="156" rx="9" ry="10" fill="#D98F97"/>',
+      cariño: '<path d="M120 142 Q140 158 160 142" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="140" cy="151" rx="11" ry="8" fill="#D98F97"/>',
+      jugando: '<path d="M116 140 Q140 162 164 140" stroke="#3A2E35" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="140" cy="153" rx="13" ry="12" fill="#D98F97"/>',
+      durmiendo: '<ellipse cx="140" cy="146" rx="7" ry="5" fill="#3A2E35"/>'
+    };
+    return `
+    <svg viewBox="0 0 280 260" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="140" cy="230" rx="70" ry="14" fill="#EDE1DD"/>
+      <path d="M75 90 Q60 40 95 55 Q100 85 100 100 Z" fill="#8B5E3C"/>
+      <path d="M205 90 Q220 40 185 55 Q180 85 180 100 Z" fill="#8B5E3C"/>
+      <ellipse cx="140" cy="145" rx="80" ry="75" fill="#A9764F"/>
+      <ellipse cx="140" cy="150" rx="80" ry="70" fill="#C9976B"/>
+      <ellipse cx="140" cy="175" rx="46" ry="34" fill="#E8D4BE"/>
+      ${eyes[mood] || eyes.neutral}
+      <ellipse cx="140" cy="130" rx="16" ry="12" fill="#5A3D28"/>
+      ${mouth[mood] || mouth.neutral}
+      <ellipse cx="90" cy="150" rx="14" ry="9" fill="#D98F97" opacity="0.55"/>
+      <ellipse cx="190" cy="150" rx="14" ry="9" fill="#D98F97" opacity="0.55"/>
+      ${mood === 'cariño' ? '<text x="220" y="70" font-size="26">💕</text>' : ''}
+      ${mood === 'jugando' ? '<text x="215" y="65" font-size="24">✨</text>' : ''}
+      ${mood === 'comiendo' ? '<text x="200" y="190" font-size="22">🍖</text>' : ''}
+      ${mood === 'durmiendo' ? '<text x="195" y="70" font-size="28">💤</text>' : ''}
+    </svg>`;
+  }
+
+  function renderPet() {
+    document.getElementById('petSvgHolder').innerHTML = dogSVG(petMood());
+    document.getElementById('happyBar').style.width = pet.happiness + '%';
+    document.getElementById('hungerBar').style.width = pet.hunger + '%';
+
+    const mood = petMood();
+    const bubble = document.getElementById('petBubble');
+    const messages = {
+      feliz: ['¡Guau! Estoy súper feliz 🐾', '¡Qué buen día para jugar!', 'Me encanta que me cuides'],
+      neutral: ['Estoy bien, ¿jugamos un rato?', 'Un cariñito no me caería mal', 'Tengo algo de hambre'],
+      triste: ['Te extrañé mucho...', 'Tengo hambre 🥺', 'Un poco de cariño me haría bien']
+    };
+    if (!bubble.dataset.locked) {
+      bubble.textContent = messages[mood][Math.floor(Math.random() * messages[mood].length)];
+    }
+  }
+
+  function petInteract(action) {
+    const bubble = document.getElementById('petBubble');
+    const holder = document.getElementById('petSvgHolder');
+    let msg = '';
+    let actionMood = 'neutral';
+
+    if (action === 'feed') {
+      pet.hunger = clamp(pet.hunger + 25);
+      pet.happiness = clamp(pet.happiness + 5);
+      msg = '¡Om nom nom! Gracias 🍖';
+      actionMood = 'comiendo';
+    } else if (action === 'pet') {
+      pet.happiness = clamp(pet.happiness + 12);
+      msg = '¡Guau guau! Me encanta 🥰';
+      actionMood = 'cariño';
+    } else if (action === 'play') {
+      pet.happiness = clamp(pet.happiness + 15);
+      pet.hunger = clamp(pet.hunger - 8);
+      msg = '¡Eso fue divertido! 🎾';
+      actionMood = 'jugando';
+    } else if (action === 'sleep') {
+      pet.happiness = clamp(pet.happiness + 10);
+      msg = 'Zzz... qué buena siesta 💤';
+      actionMood = 'durmiendo';
+    }
+
+    bubble.textContent = msg;
+    bubble.dataset.locked = '1';
+
+    pet.lastUpdate = Date.now();
+    savePet();
+    document.getElementById('happyBar').style.width = pet.happiness + '%';
+    document.getElementById('hungerBar').style.width = pet.hunger + '%';
+
+    // Muestra la expresión especial de la acción con animación
+    document.getElementById('petSvgHolder').innerHTML = dogSVG(actionMood);
+    holder.classList.remove('bounce');
+    void holder.offsetWidth;
+    holder.classList.add('bounce');
+
+    // Después de un momento, vuelve a la expresión de ánimo normal
+    setTimeout(() => {
+      delete bubble.dataset.locked;
+      renderPet();
+    }, action === 'sleep' ? 2800 : 1800);
+  }
+
+  document.getElementById('sleepBtn').addEventListener('click', () => petInteract('sleep'));
+
+  document.getElementById('feedBtn').addEventListener('click', () => petInteract('feed'));
+  document.getElementById('petBtn').addEventListener('click', () => petInteract('pet'));
+  document.getElementById('playBtn').addEventListener('click', () => petInteract('play'));
+
+  loadPet();
+  // ---------- fin Mascota ----------
 
   async function shareSummary() {
     const ranges = getPeriodStarts();
